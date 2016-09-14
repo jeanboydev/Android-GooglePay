@@ -1,0 +1,52 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion "24.0.2"
+
+    defaultConfig {
+        applicationId "com.jeanboy.demo.pay"
+        minSdkVersion 15
+        targetSdkVersion 24
+        versionCode 2
+        versionName "1.0.1"
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file("../demo_pay.jks")
+            storePassword "123456"
+            keyAlias "beijing"
+            keyPassword "123456"
+        }
+        release {
+            storeFile file("../demo_pay.jks")
+            storePassword "123456"
+            keyAlias "beijing"
+            keyPassword "123456"
+        }
+    }
+
+    buildTypes {
+
+        debug {
+            versionNameSuffix "-dev"
+            signingConfig signingConfigs.release
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:appcompat-v7:24.2.0'
+
+//    compile 'com.google.android.gms:play-services-auth:9.4.0'
+//    compile 'com.google.android.gms:play-services-wallet:9.4.0'
+}
