@@ -98,7 +98,7 @@ public class GPayManager {
                 }
             });
         } else {
-            Log.d(TAG, "IabHelper setup not completely successful!");
+            Log.e(TAG, "IabHelper setup not completely successful!");
         }
     }
 
