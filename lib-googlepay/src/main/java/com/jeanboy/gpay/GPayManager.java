@@ -88,19 +88,85 @@ public class GPayManager {
         isHelperSetupSucceed = false;
     }
 
+    /**
+     * 购买商品入口
+     *
+     * @param productId
+     * @param payload
+     * @param isAutoConsume
+     * @param inventoryListener
+     */
     public void toBuy(final String productId, final String payload, final boolean isAutoConsume,
                       final InventoryListener inventoryListener) {
+        queryInventory(productId, payload, new QueryInventoryListener() {
+            @Override
+            public void finish(Purchase purchase, boolean hadProduct) {
+                if (hadProduct) {//已经拥有
+                    if (isAutoConsume) {//是否自动消耗
+                        consumeProduct(purchase, new ConsumeListener() {
+                            @Override
+                            public void success() {
+                                toPurchase(productId, payload, inventoryListener);
+                            }
+
+                            @Override
+                            public void error(String msg) {
+                                if (inventoryListener != null) {
+                                    inventoryListener.error(productId, msg);
+                                }
+                            }
+                        });
+                    } else {
+                        Log.e(TAG, "已经购买过无需重复购买！");
+                        if (inventoryListener != null) {
+                            inventoryListener.finish(productId);
+                        }
+                    }
+                } else {
+                    toPurchase(productId, payload, inventoryListener);
+                }
+            }
+
+            @Override
+            public void error(String productId, String msg) {
+                if (inventoryListener != null) {
+                    inventoryListener.error(productId, msg);
+                }
+            }
+        });
+    }
+
+    /**
+     * 查询购买的商品
+     *
+     * @param productId
+     * @param payload
+     * @param queryInventoryListener
+     */
+    public void queryInventory(final String productId, final String payload,
+                               final QueryInventoryListener queryInventoryListener) {
         if (isEnable()) {
             mHelper.queryInventoryAsync(new IabHelper.QueryInventoryFinishedListener() {
                 @Override
                 public void onQueryInventoryFinished(IabResult result, final Inventory inventory) {
-                    queryInventoryBack(result, inventory, productId, payload, isAutoConsume, inventoryListener);
+                    Log.d(TAG, "Query inventory finished.");
+                    if (mHelper == null) return;
+                    if (result.isFailure()) {
+                        Log.e(TAG, "**** 查询购买记录 Error: Failed to query inventory: " + result);
+                        return;
+                    }
+
+                    final Purchase purchase = inventory.getPurchase(productId);
+                    boolean hadProduct = (purchase != null && verifyDeveloperPayload(purchase, payload));
+                    if (queryInventoryListener != null) {
+                        queryInventoryListener.finish(purchase, hadProduct);
+                    }
                 }
             });
         } else {
-            Log.e(TAG, "IabHelper setup not completely successful!");
-            if (inventoryListener != null) {
-                inventoryListener.error(productId, "IabHelper setup not completely successful!");
+            Log.e(TAG, "支付环境异常 IabHelper setup not completely successful!");
+            if (queryInventoryListener != null) {
+                queryInventoryListener.error(productId, "IabHelper setup not completely successful!");
             }
         }
     }
@@ -137,80 +203,31 @@ public class GPayManager {
     }
 
     /**
-     * 查询购买记录回调处理
-     *
-     * @param result
-     * @param inventory
-     * @param productId
-     * @param payload
-     * @param isAutoConsume
-     * @param inventoryListener
-     */
-    private void queryInventoryBack(IabResult result, final Inventory inventory,
-                                    final String productId, final String payload, boolean isAutoConsume,
-                                    final InventoryListener inventoryListener) {
-        Log.d(TAG, "Query inventory finished.");
-        if (mHelper == null) return;
-        if (result.isFailure()) {
-            Log.e(TAG, "**** 查询购买记录 Error: Failed to query inventory: " + result);
-            return;
-        }
-
-        final Purchase purchase = inventory.getPurchase(productId);
-        boolean hadProduct = (purchase != null && verifyDeveloperPayload(purchase, payload));
-        if (hadProduct) {//已经拥有
-            if (isAutoConsume) {//是否自动消耗
-                mHelper.consumeAsync(purchase, new IabHelper.OnConsumeFinishedListener() {
-                    @Override
-                    public void onConsumeFinished(Purchase purchase, IabResult result) {
-                        consumeBack(purchase, result, new ConsumeListener() {
-                            @Override
-                            public void success() {
-                                toPurchase(productId, payload, inventoryListener);
-                            }
-
-                            @Override
-                            public void error(String msg) {
-                                if (inventoryListener != null) {
-                                    inventoryListener.error(productId, msg);
-                                }
-                            }
-                        });
-                    }
-                });
-            } else {
-                Log.e(TAG, "已经购买过无需重复购买！");
-                if (inventoryListener != null) {
-                    inventoryListener.finish(productId);
-                }
-            }
-        } else {
-            toPurchase(productId, payload, inventoryListener);
-        }
-    }
-
-    /**
-     * 商品消耗回调处理
+     * 消耗商品处理
      *
      * @param purchase
-     * @param result
      * @param consumeListener
      */
-    private void consumeBack(Purchase purchase, IabResult result, ConsumeListener consumeListener) {
-        Log.d(TAG, "Consumption finished. Purchase: " + purchase + ", result: " + result);
-        if (mHelper == null) return;
+    private void consumeProduct(Purchase purchase, final ConsumeListener consumeListener) {
+        mHelper.consumeAsync(purchase, new IabHelper.OnConsumeFinishedListener() {
+            @Override
+            public void onConsumeFinished(Purchase purchase, IabResult result) {
+                Log.d(TAG, "Consumption finished. Purchase: " + purchase + ", result: " + result);
+                if (mHelper == null) return;
 
-        if (result.isSuccess()) {
-            Log.d(TAG, "商品消耗成功 Consumption successful. Provisioning.");
-            if (consumeListener != null) {
-                consumeListener.success();
+                if (result.isSuccess()) {
+                    Log.d(TAG, "商品消耗成功 Consumption successful. Provisioning.");
+                    if (consumeListener != null) {
+                        consumeListener.success();
+                    }
+                } else {
+                    Log.e(TAG, "商品消耗失败 Error while consuming: " + result);
+                    if (consumeListener != null) {
+                        consumeListener.error("Error while consuming: " + result);
+                    }
+                }
             }
-        } else {
-            Log.e(TAG, "商品消耗失败 Error while consuming: " + result);
-            if (consumeListener != null) {
-                consumeListener.error("Error while consuming: " + result);
-            }
-        }
+        });
     }
 
     /**
@@ -251,6 +268,13 @@ public class GPayManager {
                 }
             }
         }, payload);
+    }
+
+    public interface QueryInventoryListener {
+
+        void finish(Purchase purchase, boolean hadProduct);
+
+        void error(String productId, String msg);
     }
 
     public interface InventoryListener {
