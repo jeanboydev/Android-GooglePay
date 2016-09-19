@@ -52,7 +52,9 @@ public class GPayManager {
             public void onIabSetupFinished(IabResult result) {
                 if (!result.isSuccess()) {
                     Log.e(TAG, "Problem setting up In-app Billing: " + result);
+                 return;
                 }
+                if (mHelper == null) return;
                 isHelperSetupSucceed = true;
             }
         });
