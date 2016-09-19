@@ -1,5 +1,0 @@
-<resources>
-    <string name="app_name">DemoPay</string>
-    <string name="welcome_user">Welcome, %s.</string>
-    <string name="network_error">An error occurring while contacting Google. Please try again later.</string>
-</resources>
