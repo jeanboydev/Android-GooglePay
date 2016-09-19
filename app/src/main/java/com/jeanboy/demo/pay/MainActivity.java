@@ -8,6 +8,7 @@ import android.widget.Toast;
 
 import com.jeanboy.gpay.GPayManager;
 import com.jeanboy.gpay.util.Purchase;
+import com.jeanboy.gpay.util.SkuDetails;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -67,9 +68,10 @@ public class MainActivity extends AppCompatActivity {
     public void toQuery(View v) {
         String payload = GPayManager.getInstance().generatePayLoad(PRODUCT_ONE);
         GPayManager.getInstance().queryInventory(PRODUCT_ONE, payload, new GPayManager.QueryInventoryListener() {
+
             @Override
-            public void finish(Purchase purchase, boolean hadProduct) {
-                Toast.makeText(MainActivity.this, "查询成功==hadProduct==" + hadProduct + "===" + PRODUCT_ONE, Toast.LENGTH_SHORT).show();
+            public void finish(Purchase purchase, SkuDetails skuDetails, boolean hadProduct) {
+                Toast.makeText(MainActivity.this, "查询成功==hadProduct==" + hadProduct + "====price===" + skuDetails.getPrice() + "===" + PRODUCT_ONE, Toast.LENGTH_SHORT).show();
             }
 
             @Override

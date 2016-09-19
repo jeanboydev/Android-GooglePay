@@ -9,6 +9,7 @@ import com.jeanboy.gpay.util.IabResult;
 import com.jeanboy.gpay.util.Inventory;
 import com.jeanboy.gpay.util.MD5;
 import com.jeanboy.gpay.util.Purchase;
+import com.jeanboy.gpay.util.SkuDetails;
 
 /**
  * Created by jeanboy on 2016/9/19.
@@ -100,7 +101,7 @@ public class GPayManager {
                       final InventoryListener inventoryListener) {
         queryInventory(productId, payload, new QueryInventoryListener() {
             @Override
-            public void finish(Purchase purchase, boolean hadProduct) {
+            public void finish(Purchase purchase, SkuDetails skuDetails, boolean hadProduct) {
                 if (hadProduct) {//已经拥有
                     if (isAutoConsume) {//是否自动消耗
                         consumeProduct(purchase, new ConsumeListener() {
@@ -156,10 +157,11 @@ public class GPayManager {
                         return;
                     }
 
-                    final Purchase purchase = inventory.getPurchase(productId);
+                    Purchase purchase = inventory.getPurchase(productId);
+                    SkuDetails skuDetails = inventory.getSkuDetails(productId);
                     boolean hadProduct = (purchase != null && verifyDeveloperPayload(purchase, payload));
                     if (queryInventoryListener != null) {
-                        queryInventoryListener.finish(purchase, hadProduct);
+                        queryInventoryListener.finish(purchase, skuDetails, hadProduct);
                     }
                 }
             });
@@ -272,7 +274,7 @@ public class GPayManager {
 
     public interface QueryInventoryListener {
 
-        void finish(Purchase purchase, boolean hadProduct);
+        void finish(Purchase purchase, SkuDetails skuDetails, boolean hadProduct);
 
         void error(String productId, String msg);
     }
