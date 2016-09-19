@@ -52,7 +52,7 @@ public class GPayManager {
             public void onIabSetupFinished(IabResult result) {
                 if (!result.isSuccess()) {
                     Log.e(TAG, "Problem setting up In-app Billing: " + result);
-                 return;
+                    return;
                 }
                 if (mHelper == null) return;
                 isHelperSetupSucceed = true;
@@ -97,6 +97,8 @@ public class GPayManager {
                     queryInventoryBack(result, inventory, productId, payload, isAutoConsume, inventoryListener);
                 }
             });
+        } else {
+            Log.d(TAG, "IabHelper setup not completely successful!");
         }
     }
 
@@ -128,11 +130,7 @@ public class GPayManager {
      * @return
      */
     private boolean isEnable() {
-        if (isHelperSetupSucceed && mHelper != null) {
-            return true;
-        } else {
-            throw new RuntimeException("GPayManager must be build!");
-        }
+        return isHelperSetupSucceed && mHelper != null;
     }
 
     /**
