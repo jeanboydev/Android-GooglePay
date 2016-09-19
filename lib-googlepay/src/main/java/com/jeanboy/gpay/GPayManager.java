@@ -99,6 +99,9 @@ public class GPayManager {
             });
         } else {
             Log.e(TAG, "IabHelper setup not completely successful!");
+            if (inventoryListener != null) {
+                inventoryListener.error(productId, "IabHelper setup not completely successful!");
+            }
         }
     }
 
