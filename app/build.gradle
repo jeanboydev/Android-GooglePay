@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.2"
+    buildToolsVersion '25.0.0'
 
     defaultConfig {
         applicationId "com.jeanboy.demo.pay"
@@ -48,5 +48,6 @@ dependencies {
     compile 'com.android.support:appcompat-v7:24.2.0'
     //    compile 'com.google.android.gms:play-services-auth:9.4.0'
     //    compile 'com.google.android.gms:play-services-wallet:9.4.0'
-    compile project(':lib-googlepay')
+//    compile project(':lib-googlepay')
+    compile 'com.anjlab.android.iab.v3:library:1.0.+'
 }

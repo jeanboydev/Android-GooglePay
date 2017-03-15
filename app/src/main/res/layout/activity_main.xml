@@ -37,4 +37,11 @@
         android:layout_marginTop="10dp"
         android:onClick="toQuery"
         android:text="to Query" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:onClick="toBuy4"
+        android:text="to buy 4" />
 </LinearLayout>
